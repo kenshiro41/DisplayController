@@ -3,23 +3,63 @@
   windows_subsystem = "windows"
 )]
 
+mod command;
+mod menu;
+mod utils;
+
+use std::collections::HashMap;
+
 use tauri::{
   CustomMenuItem, Manager, PhysicalPosition, Position, SystemTray, SystemTrayEvent, SystemTrayMenu,
-  TrayIcon,
+  SystemTrayMenuItem, SystemTraySubmenu, TrayIcon,
 };
 
-use ddc::Ddc;
-use ddc_macos::Monitor;
-
 fn main() {
-  let tray = SystemTray::new().with_menu(
-    SystemTrayMenu::new()
-      .add_item(CustomMenuItem::new("action".to_string(), "Open"))
-      .add_item(CustomMenuItem::new("quit".to_string(), "Quit")),
-  );
+  let displays = command::get_displays();
+
+  let menu = SystemTrayMenu::new()
+    .add_native_item(SystemTrayMenuItem::Separator)
+    .add_item(CustomMenuItem::new("quit", "Quit"));
+
+  // let a = SystemTrayMenu::new()
+  //   .add_item(CustomMenuItem::new("action".to_string(), "Open"))
+  //   .add_submenu(SystemTraySubmenu::new("sub", SystemTrayMenu::new()))
+  //   .add_item(CustomMenuItem::new("quit".to_string(), "Quit"));
+
+  let sub_menu: SystemTrayMenu = SystemTrayMenu::new();
+  // let a = utils::read_json();
+  // for (key, value) in a {
+  //   sub_menu
+  //     .to_owned()
+  //     .add_item(CustomMenuItem::new(value.to_string(), key));
+  // }
+
+  // for d in displays {
+  //   println!("{:?}", d);
+  //   menu.to_owned().add_submenu(SystemTraySubmenu::new(
+  //     d.display_name,
+  //     SystemTrayMenu::new(),
+  //   ));
+  // }
+
+  let tray = SystemTray::new().with_menu(menu);
+
+  let tray_menu1 = SystemTrayMenu::new()
+    .add_item(CustomMenuItem::new("toggle", "Toggle"))
+    .add_item(CustomMenuItem::new("new", "New window"))
+    .add_item(CustomMenuItem::new("icon_1", "Tray Icon 1"))
+    .add_item(CustomMenuItem::new("icon_2", "Tray Icon 2"))
+    .add_item(CustomMenuItem::new("switch_menu", "Switch Menu"))
+    .add_item(CustomMenuItem::new("exit_app", "Quit"));
+  let tray_menu2 = SystemTrayMenu::new()
+    .add_item(CustomMenuItem::new("toggle", "Toggle"))
+    .add_item(CustomMenuItem::new("new", "New window"))
+    .add_item(CustomMenuItem::new("switch_menu", "Switch Menu"))
+    .add_item(CustomMenuItem::new("exit_app", "Quit"));
 
   tauri::Builder::default()
-    // .menu(menu)
+    .menu(menu::get_menu())
+    // .system_tray(tray)
     .system_tray(tray)
     .on_system_tray_event(|app, event| match event {
       SystemTrayEvent::LeftClick { position, .. } => {
@@ -30,12 +70,19 @@ fn main() {
         } else {
           window.show().unwrap();
           window.set_focus().unwrap();
+          let x = position.x as i32 - (361 as i32);
+          println!("{:?}", x);
           window
-            .set_position(Position::Physical(PhysicalPosition {
-              x: (position.x as i32 - (361 as i32)),
-              y: 0,
-            }))
+            .set_position(Position::Physical(PhysicalPosition { x: x, y: 0 }))
             .unwrap();
+        }
+      }
+      SystemTrayEvent::MenuItemClick { id, .. } => {
+        let item_handler = app.tray_handle().get_item(&id);
+
+        match id.as_str() {
+          "quit" => app.exit(0),
+          _ => {}
         }
       }
       _ => {}
@@ -58,42 +105,15 @@ fn main() {
 
       Ok(())
     })
-    .invoke_handler(tauri::generate_handler![set_input_source, get_displays])
+    .invoke_handler(tauri::generate_handler![
+      command::set_input_source,
+      command::get_displays,
+      command::set_brightness,
+      command::set_contrast,
+      command::set_sharpness,
+      command::set_speaker_volume,
+      command::set_speaker_mute,
+    ])
     .run(tauri::generate_context!())
     .expect("error while running tauri application");
-}
-
-#[derive(serde::Serialize)]
-struct Display {
-  id: u32,
-  display_name: String,
-}
-
-#[tauri::command]
-fn get_displays() -> Vec<Display> {
-  let mut displays = Vec::new();
-
-  for ddc in Monitor::enumerate().unwrap() {
-    displays.push(Display {
-      id: ddc.handle().id,
-      display_name: ddc.product_name().unwrap(),
-    })
-  }
-
-  displays
-}
-
-const INPUT_SOURCE_CODE: u8 = 0x60;
-
-// https://github.com/kfix/ddcctl/blob/main/README.md#input-sources
-#[tauri::command]
-fn set_input_source(id: u32, value: u16) {
-  println!("value is :{:?}", value);
-
-  for mut m in Monitor::enumerate().unwrap() {
-    let m_id = m.handle().id;
-    if m_id == id {
-      m.set_vcp_feature(INPUT_SOURCE_CODE, value).unwrap();
-    }
-  }
 }
