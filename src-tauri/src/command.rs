@@ -7,8 +7,9 @@ const BRIGHTNESS_CODE: u8 = 0x10;
 const SHARPNESS_CODE: u8 = 0x87;
 const CONTRAST_CODE: u8 = 0x12;
 const INPUT_SOURCE_CODE: u8 = 0x60;
-const SPEAKER_VOLUME: u8 = 0x62;
-const SPEAKER_MUTE: u8 = 0x8d;
+const SPEAKER_VOLUME_CODE: u8 = 0x62;
+const SPEAKER_MUTE_CODE: u8 = 0x8d;
+const RESET_CODE: u8 = 0x04;
 
 #[derive(Debug, serde::Serialize)]
 pub struct Display {
@@ -28,6 +29,23 @@ struct Size {
   height: u64,
 }
 
+trait Monitors {
+  fn get_value(&mut self, code: u8) -> u16;
+}
+
+impl Monitors for Monitor {
+  fn get_value(&mut self, code: u8) -> u16 {
+    match self.get_vcp_feature(code) {
+      Ok(v) => v.value(),
+      Err(err) => {
+        println!("err: {}", err);
+
+        0
+      }
+    }
+  }
+}
+
 #[tauri::command]
 pub fn get_displays() -> Vec<Display> {
   let mut displays = Vec::new();
@@ -39,46 +57,13 @@ pub fn get_displays() -> Vec<Display> {
       width: m.handle().pixels_wide(),
       height: m.handle().pixels_high(),
     };
-    let active_code = match m.get_vcp_feature(INPUT_SOURCE_CODE) {
-      Ok(v) => v.value(),
-      Err(err) => 0,
-    };
+    let active_code = m.get_value(INPUT_SOURCE_CODE);
 
-    let brightness = match m.get_vcp_feature(BRIGHTNESS_CODE) {
-      Ok(v) => v.value(),
-      Err(err) => 0,
-    };
-    let contrast = match m.get_vcp_feature(CONTRAST_CODE) {
-      Ok(v) => v.value(),
-      Err(err) => 0,
-    };
-    let sharpness = match m.get_vcp_feature(SHARPNESS_CODE) {
-      Ok(v) => v.value(),
-      Err(err) => 0,
-    };
-    let speaker_volume = match m.get_vcp_feature(SPEAKER_VOLUME) {
-      Ok(v) => v.value(),
-      Err(err) => 0,
-    };
-    let speaker_mute = match m.get_vcp_feature(SPEAKER_MUTE) {
-      Ok(v) => v.value(),
-      Err(err) => 0,
-    };
-
-    if cfg!(debug_assertions) {
-      let TEST = 0xb7;
-      let t = match m.get_vcp_feature(TEST) {
-        Ok(v) => {
-          println!("test:{:?}", v);
-
-          v.value()
-        }
-        Err(err) => {
-          println!("test:{:?}", err);
-          0
-        }
-      };
-    }
+    let brightness = m.get_value(BRIGHTNESS_CODE);
+    let contrast = m.get_value(CONTRAST_CODE);
+    let sharpness = m.get_value(SHARPNESS_CODE);
+    let speaker_volume = m.get_value(SPEAKER_VOLUME_CODE);
+    let speaker_mute = m.get_value(SPEAKER_MUTE_CODE);
 
     displays.push(Display {
       id: id,
@@ -98,56 +83,41 @@ pub fn get_displays() -> Vec<Display> {
 
 #[tauri::command]
 pub fn set_input_source(id: u32, value: u16) {
-  for mut m in Monitor::enumerate().unwrap() {
-    let m_id = m.handle().id;
-    if m_id == id {
-      m.set_vcp_feature(INPUT_SOURCE_CODE, value).unwrap();
-    }
-  }
+  set_value(INPUT_SOURCE_CODE, id, value);
 }
 
 #[tauri::command]
 pub fn set_brightness(id: u32, value: u16) {
-  for mut m in Monitor::enumerate().unwrap() {
-    let m_id = m.handle().id;
-    if m_id == id {
-      m.set_vcp_feature(BRIGHTNESS_CODE, value).unwrap();
-    }
-  }
+  set_value(BRIGHTNESS_CODE, id, value);
 }
 #[tauri::command]
 pub fn set_contrast(id: u32, value: u16) {
-  for mut m in Monitor::enumerate().unwrap() {
-    let m_id = m.handle().id;
-    if m_id == id {
-      m.set_vcp_feature(CONTRAST_CODE, value).unwrap();
-    }
-  }
+  set_value(CONTRAST_CODE, id, value);
 }
+
 #[tauri::command]
 pub fn set_sharpness(id: u32, value: u16) {
-  for mut m in Monitor::enumerate().unwrap() {
-    let m_id = m.handle().id;
-    if m_id == id {
-      m.set_vcp_feature(SHARPNESS_CODE, value);
-    }
-  }
+  set_value(SHARPNESS_CODE, id, value);
 }
 #[tauri::command]
 pub fn set_speaker_volume(id: u32, value: u16) {
-  for mut m in Monitor::enumerate().unwrap() {
-    let m_id = m.handle().id;
-    if m_id == id {
-      m.set_vcp_feature(SPEAKER_VOLUME, value).unwrap();
-    }
-  }
+  set_value(SPEAKER_VOLUME_CODE, id, value);
 }
 #[tauri::command]
 pub fn set_speaker_mute(id: u32, value: u16) {
+  set_value(SPEAKER_VOLUME_CODE, id, value);
+}
+
+fn set_value(code: u8, id: u32, value: u16) {
   for mut m in Monitor::enumerate().unwrap() {
     let m_id = m.handle().id;
     if m_id == id {
-      m.set_vcp_feature(SPEAKER_VOLUME, value).unwrap();
+      let res = m.set_vcp_feature(code, value);
+      if res.is_err() {
+        println!("err: {:?}", res.err());
+      } else {
+        println!("code: {}, id: {}, value: {}", code, id, value);
+      }
     }
   }
 }

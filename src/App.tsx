@@ -33,7 +33,7 @@ function App() {
       </Button>
       {isLoading && (
         <Center>
-          <Spinner />
+          <Spinner size='lg' color='cyan.500' />
         </Center>
       )}
       {displays.map((d) => (

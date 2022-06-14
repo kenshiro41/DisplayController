@@ -9,6 +9,7 @@ import {
   Button,
   Flex,
   Heading,
+  Select,
   Spacer,
   Text,
 } from '@chakra-ui/react'
@@ -69,6 +70,15 @@ export const DisplayPage: React.FC<Display> = (props) => {
     })
   }
 
+  const handleInputSource: React.ChangeEventHandler<HTMLSelectElement> = async (
+    e
+  ) => {
+    await invoke('set_input_source', {
+      id: props.id,
+      value: sources[e.target.value],
+    })
+  }
+
   return (
     <>
       <Box>
@@ -107,41 +117,34 @@ export const DisplayPage: React.FC<Display> = (props) => {
             {isSpeakerMute || speakerVolume === 0 ? <Mute /> : <High />}
           </Button>
         }
+        isDisabled={isSpeakerMute}
       />
-      {/* <Container>
-        <Button onClick={handleSpeakerMute}>
-          {isSpeakerMute || speakerVolume === 0 ? <Mute /> : <High />}
-        </Button>
-      </Container> */}
 
       <Spacer height='4' />
 
-      {s.map((x) => (
-        <Button
-          key={x}
-          margin='2px'
-          backgroundColor={
-            props.active_code === sources[x] ? 'aquamarine' : undefined
-          }
-          onClick={async () => {
-            await invoke('set_input_source', {
-              id: props.id,
-              value: sources[x],
-            })
-            // setTimeout(() => {
-            //   setFetchFlag(true)
-            // }, 500)
-          }}
-        >
-          {x}
-        </Button>
-      ))}
+      <Select
+        bg={props.active_code ? 'cyan.100' : undefined}
+        borderColor={props.active_code ? 'cyan.100' : undefined}
+        defaultValue={Object.keys(sources).find(
+          (key) => sources[key] === props.active_code
+        )}
+        onChange={handleInputSource}
+      >
+        {s.map((x) => (
+          <option key={x}>{x}</option>
+        ))}
+      </Select>
     </>
   )
 }
 
 // https://github.com/kfix/ddcctl/blob/main/README.md#input-sources
 const sources: { [key: string]: number } = {
+  'DisplayPort-1': 15,
+  'DisplayPort-2': 16,
+  'HDMI-1': 17,
+  'HDMI-2': 18,
+  'USB-C': 27,
   'VGA-1': 1,
   'VGA-2': 2,
   'DVI-1': 3,
@@ -156,9 +159,4 @@ const sources: { [key: string]: number } = {
   'Component video (YPrPb/YCrCb) 1': 12,
   'Component video (YPrPb/YCrCb) 2': 13,
   'Component video (YPrPb/YCrCb) 3': 14,
-  'DisplayPort-1': 15,
-  'DisplayPort-2': 16,
-  'HDMI-1': 17,
-  'HDMI-2': 18,
-  'USB-C': 27,
 }

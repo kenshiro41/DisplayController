@@ -13,6 +13,7 @@ type Props = {
   value: number
   onChange: (value: number) => void
   rightContent?: JSX.Element
+  isDisabled?: boolean
 }
 
 export const SliderBar: React.FC<Props> = ({
@@ -20,6 +21,7 @@ export const SliderBar: React.FC<Props> = ({
   value,
   onChange,
   rightContent,
+  isDisabled,
 }) => {
   return (
     <Container marginY='2'>
@@ -29,9 +31,15 @@ export const SliderBar: React.FC<Props> = ({
         </Text>
         {rightContent && rightContent}
       </Flex>
-      <Slider aria-label='slider-ex-1' defaultValue={value} onChange={onChange}>
+      <Slider
+        aria-label='slider-ex-1'
+        color='red'
+        defaultValue={value}
+        onChange={onChange}
+        isDisabled={isDisabled}
+      >
         <SliderTrack>
-          <SliderFilledTrack />
+          <SliderFilledTrack bg='cyan.400' />
         </SliderTrack>
         <SliderThumb />
       </Slider>

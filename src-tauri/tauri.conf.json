@@ -58,8 +58,8 @@
     },
     "windows": [
       {
-        "height": 600,
-        "width": 800,
+        "height": 500,
+        "width": 400,
         "fullscreen": false,
         "resizable": true,
         "title": "DisplayController"
