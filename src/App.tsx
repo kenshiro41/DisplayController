@@ -1,27 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
-import { invoke } from '@tauri-apps/api/tauri'
+import { invoke } from '@tauri-apps/api/tauri';
 
-import { Button, Center, Container, Spacer, Spinner } from '@chakra-ui/react'
-import { DisplayPage } from './components/DisplayPage'
-import { Display } from './types/display'
+import { Button, Center, Container, Spacer, Spinner } from '@chakra-ui/react';
+import { DisplayPage } from './components/DisplayPage';
+import { Display } from './types/display';
 
 function App() {
-  const [displays, setDisplays] = useState<Display[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [displays, setDisplays] = useState<Display[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const getDisplays = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
+      const data: Display[] = await invoke('get_displays');
+      setDisplays(data);
+      setIsLoading(false);
+    };
 
-      const data: Display[] = await invoke('get_displays')
-      setDisplays(data)
-
-      setIsLoading(false)
-    }
-
-    getDisplays()
-  }, [])
+    getDisplays();
+  }, []);
 
   return (
     <Container as='main' marginY='4'>
@@ -43,7 +41,7 @@ function App() {
         </div>
       ))}
     </Container>
-  )
+  );
 }
 
-export default App
+export default App;

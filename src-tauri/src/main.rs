@@ -4,12 +4,13 @@
 )]
 
 mod command;
+mod constants;
 mod menu;
-mod utils;
+mod models;
 
 use tauri::{
   CustomMenuItem, Manager, PhysicalPosition, Position, SystemTray, SystemTrayEvent, SystemTrayMenu,
-  SystemTrayMenuItem, TrayIcon,
+  SystemTrayMenuItem,
 };
 
 fn main() {
@@ -32,9 +33,9 @@ fn main() {
           window.show().unwrap();
           window.set_focus().unwrap();
           let x = position.x as i32 - (361 as i32);
-          println!("{:?}", x);
+          let y = position.y as i32 - (840 as i32);
           window
-            .set_position(Position::Physical(PhysicalPosition { x: x, y: 0 }))
+            .set_position(Position::Physical(PhysicalPosition { x: x, y: y }))
             .unwrap();
         }
       }
@@ -51,18 +52,6 @@ fn main() {
     .setup(|app| {
       let window = app.get_window("main").unwrap();
       let tray = app.tray_handle();
-
-      window.listen("recording", move |event| {
-        if event.payload() == Some("true") {
-          tray
-            .set_icon(TrayIcon::Raw(include_bytes!("../icons/icon.png").to_vec()))
-            .unwrap();
-        } else {
-          tray
-            .set_icon(TrayIcon::Raw(include_bytes!("../icons/icon.png").to_vec()))
-            .unwrap();
-        }
-      });
 
       Ok(())
     })

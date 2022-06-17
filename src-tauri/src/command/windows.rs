@@ -1,33 +1,11 @@
-use std::fmt::Debug;
-
 use ddc::Ddc;
-use ddc_macos::Monitor;
+use ddc_winapi::Monitor;
 
-const BRIGHTNESS_CODE: u8 = 0x10;
-const SHARPNESS_CODE: u8 = 0x87;
-const CONTRAST_CODE: u8 = 0x12;
-const INPUT_SOURCE_CODE: u8 = 0x60;
-const SPEAKER_VOLUME_CODE: u8 = 0x62;
-const SPEAKER_MUTE_CODE: u8 = 0x8d;
-const RESET_CODE: u8 = 0x04;
-
-#[derive(Debug, serde::Serialize)]
-pub struct Display {
-  id: u32,
-  display_name: String,
-  size: Size,
-  active_code: u16,
-  brightness: u16,
-  contrast: u16,
-  sharpness: u16,
-  speaker_volume: u16,
-  speaker_mute: u16,
-}
-#[derive(Debug, serde::Serialize)]
-struct Size {
-  width: u64,
-  height: u64,
-}
+use crate::constants::{
+  BRIGHTNESS_CODE, CONTRAST_CODE, INPUT_SOURCE_CODE, SHARPNESS_CODE, SPEAKER_MUTE_CODE,
+  SPEAKER_VOLUME_CODE,
+};
+use crate::models::display::{Display, Size};
 
 trait Monitors {
   fn get_value(&mut self, code: u8) -> u16;
@@ -38,7 +16,7 @@ impl Monitors for Monitor {
     match self.get_vcp_feature(code) {
       Ok(v) => v.value(),
       Err(err) => {
-        println!("err: {}", err);
+        println!("err: {}, code: {}", err, code);
 
         0
       }
@@ -51,11 +29,12 @@ pub fn get_displays() -> Vec<Display> {
   let mut displays = Vec::new();
 
   for mut m in Monitor::enumerate().unwrap() {
-    let id = m.handle().id;
-    let display_name = m.product_name().unwrap();
+    let id = m.handle() as u32;
+    let display_name = m.description();
+    // TODO: sizeを取得
     let size = Size {
-      width: m.handle().pixels_wide(),
-      height: m.handle().pixels_high(),
+      width: 0,
+      height: 0,
     };
     let active_code = m.get_value(INPUT_SOURCE_CODE);
 
@@ -85,7 +64,6 @@ pub fn get_displays() -> Vec<Display> {
 pub fn set_input_source(id: u32, value: u16) {
   set_value(INPUT_SOURCE_CODE, id, value);
 }
-
 #[tauri::command]
 pub fn set_brightness(id: u32, value: u16) {
   set_value(BRIGHTNESS_CODE, id, value);
@@ -94,7 +72,6 @@ pub fn set_brightness(id: u32, value: u16) {
 pub fn set_contrast(id: u32, value: u16) {
   set_value(CONTRAST_CODE, id, value);
 }
-
 #[tauri::command]
 pub fn set_sharpness(id: u32, value: u16) {
   set_value(SHARPNESS_CODE, id, value);
@@ -110,7 +87,7 @@ pub fn set_speaker_mute(id: u32, value: u16) {
 
 fn set_value(code: u8, id: u32, value: u16) {
   for mut m in Monitor::enumerate().unwrap() {
-    let m_id = m.handle().id;
+    let m_id = m.handle() as u32;
     if m_id == id {
       let res = m.set_vcp_feature(code, value);
       if res.is_err() {
