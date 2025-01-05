@@ -14,10 +14,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v2
-      - name: setup node
-        uses: actions/setup-node@v1
-        with:
-          node-version: 18
+      - name: setup bun
+        uses: oven-sh/setup-bun@v2
       - name: install Rust stable
         uses: actions-rs/toolchain@v1
         with:
