@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState } from 'react';
 
-import { invoke } from '@tauri-apps/api'
+import { invoke } from '@tauri-apps/api';
 
 import {
   Alert,
@@ -12,63 +12,63 @@ import {
   Select,
   Spacer,
   Text,
-} from '@chakra-ui/react'
-import { Display } from '../types/display'
-import { High, Mute } from './icons/Volume'
-import { SliderBar } from './SliderBar'
+} from '@chakra-ui/react';
+import { Display } from '../types/display';
+import { High, Mute } from './icons/Volume';
+import { SliderBar } from './SliderBar';
 
 export const DisplayPage: React.FC<Display> = (props) => {
-  const [brightness, setBrightness] = useState(props.brightness)
-  const [contrast, setContrast] = useState(props.contrast)
-  const [sharpness, setSharpness] = useState(props.sharpness)
-  const [speakerVolume, setSpeakerVolume] = useState(props.speaker_volume)
-  const [isSpeakerMute, setIsSpeakerMute] = useState(props.speaker_mute === 0)
+  const [brightness, setBrightness] = useState(props.brightness);
+  const [contrast, setContrast] = useState(props.contrast);
+  const [sharpness, setSharpness] = useState(props.sharpness);
+  const [speakerVolume, setSpeakerVolume] = useState(props.speaker_volume);
+  const [isSpeakerMute, setIsSpeakerMute] = useState(props.speaker_mute === 0);
 
-  const hasErr = (!brightness || !contrast || !sharpness) && !props.brightness
+  const hasErr = (!brightness || !contrast || !sharpness) && !props.brightness;
 
-  const s = Object.entries(sources).map(([key]) => key)
+  const s = Object.entries(sources).map(([key]) => key);
 
   const handleBrightness = (value: number) => {
-    setBrightness(value)
+    setBrightness(value);
     invoke('set_brightness', {
       id: props.id,
       value,
-    })
-  }
+    });
+  };
   const handleContrast = (value: number) => {
-    setContrast(value)
+    setContrast(value);
     invoke('set_contrast', {
       id: props.id,
       value,
-    })
-  }
+    });
+  };
   const handleSharpness = (value: number) => {
-    setSharpness(value)
+    setSharpness(value);
     invoke('set_sharpness', {
       id: props.id,
       value,
-    })
-  }
+    });
+  };
   const handleSpeakerVolume = (value: number) => {
-    setSpeakerVolume(value)
+    setSpeakerVolume(value);
 
     invoke('set_speaker_volume', {
       id: props.id,
       value,
-    })
-  }
+    });
+  };
   const handleSpeakerMute = () => {
-    const value = isSpeakerMute ? speakerVolume : 0
+    const value = isSpeakerMute ? speakerVolume : 0;
     if (speakerVolume === 0) {
-      setSpeakerVolume(1)
+      setSpeakerVolume(1);
     }
-    setIsSpeakerMute(!isSpeakerMute)
+    setIsSpeakerMute(!isSpeakerMute);
 
     invoke('set_speaker_mute', {
       id: props.id,
       value,
-    })
-  }
+    });
+  };
 
   const handleInputSource: React.ChangeEventHandler<HTMLSelectElement> = async (
     e
@@ -76,8 +76,8 @@ export const DisplayPage: React.FC<Display> = (props) => {
     await invoke('set_input_source', {
       id: props.id,
       value: sources[e.target.value],
-    })
-  }
+    });
+  };
 
   return (
     <>
@@ -135,8 +135,8 @@ export const DisplayPage: React.FC<Display> = (props) => {
         ))}
       </Select>
     </>
-  )
-}
+  );
+};
 
 // https://github.com/kfix/ddcctl/blob/main/README.md#input-sources
 const sources: { [key: string]: number } = {
@@ -159,4 +159,4 @@ const sources: { [key: string]: number } = {
   'Component video (YPrPb/YCrCb) 1': 12,
   'Component video (YPrPb/YCrCb) 2': 13,
   'Component video (YPrPb/YCrCb) 3': 14,
-}
+};

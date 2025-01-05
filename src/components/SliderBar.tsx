@@ -6,15 +6,16 @@ import {
   SliderThumb,
   SliderTrack,
   Text,
-} from '@chakra-ui/react'
+} from '@chakra-ui/react';
+import { ReactNode } from 'react';
 
 type Props = {
-  title: string
-  value: number
-  onChange: (value: number) => void
-  rightContent?: JSX.Element
-  isDisabled?: boolean
-}
+  title: string;
+  value: number;
+  onChange: (value: number) => void;
+  rightContent?: ReactNode;
+  isDisabled?: boolean;
+};
 
 export const SliderBar: React.FC<Props> = ({
   title,
@@ -44,5 +45,5 @@ export const SliderBar: React.FC<Props> = ({
         <SliderThumb />
       </Slider>
     </Container>
-  )
-}
+  );
+};
