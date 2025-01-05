@@ -1,32 +1,26 @@
-import { useEffect, useState } from 'react';
-
 import { invoke } from '@tauri-apps/api/tauri';
 
 import { Button, Center, Container, Spacer, Spinner } from '@chakra-ui/react';
+import { useQuery } from '@tanstack/react-query';
 import { DisplayPage } from './components/DisplayPage';
 import { Display } from './types/display';
 
 function App() {
-  const [displays, setDisplays] = useState<Display[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const { data, isLoading, refetch } = useQuery<Display[]>({
+    queryKey: ['get-displays'],
+    queryFn: () => invoke('get_displays'),
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    // 30 minutes
+    refetchInterval: 1000 * 60 * 30,
+  });
 
-  useEffect(() => {
-    const getDisplays = async () => {
-      setIsLoading(true);
-      const data: Display[] = await invoke('get_displays');
-      setDisplays(data);
-      setIsLoading(false);
-    };
-
-    getDisplays();
-  }, []);
+  const displays = data ?? [];
 
   return (
     <Container as='main' marginY='4'>
-      <Button
-        onClick={() => !isLoading && window.location.reload()}
-        disabled={isLoading}
-      >
+      <Button onClick={() => !isLoading && refetch()} disabled={isLoading}>
         refresh
       </Button>
       {isLoading && (
