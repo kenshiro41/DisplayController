@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/tauri';
+import { invoke } from '@tauri-apps/api/core';
 
 import { Button, Center, Container, Spacer, Spinner } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';

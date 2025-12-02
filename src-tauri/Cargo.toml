@@ -7,25 +7,25 @@ license = ""
 repository = ""
 default-run = "app"
 edition = "2021"
-rust-version = "1.57"
+rust-version = "1.70"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [build-dependencies]
-tauri-build = { version = "1.0.0-rc.12", features = [] }
+tauri-build = { version = "^2.5.3", features = [] }
 
 [dependencies]
-serde_json = "1.0"
-serde = { version = "1.0", features = ["derive"] }
-tauri = { version = "^1.0.0", features = ["api-all", "system-tray"] }
+serde_json = "^1.0.145"
+serde = { version = "^1.0.228", features = ["derive"] }
+tauri = { version = "^2.9.4", features = ["tray-icon"] }
 
-ddc = "0.2.2" 
+ddc = "^0.3.0" 
 
 [target.'cfg(macos)'.dependencies]
-ddc-macos = "0.2.0" 
+ddc-macos = "^0.2.2" 
 
 [target.'cfg(windows)'.dependencies]
-ddc-winapi = "0.2.0" 
+ddc-winapi = "^0.2.2" 
 
 [features]
 # by default Tauri runs in production mode

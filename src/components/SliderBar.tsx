@@ -1,12 +1,4 @@
-import {
-  Container,
-  Flex,
-  Slider,
-  SliderFilledTrack,
-  SliderThumb,
-  SliderTrack,
-  Text,
-} from '@chakra-ui/react';
+import { Container, Flex, Slider, Text } from '@chakra-ui/react';
 import { ReactNode } from 'react';
 
 type Props = {
@@ -32,18 +24,22 @@ export const SliderBar: React.FC<Props> = ({
         </Text>
         {rightContent && rightContent}
       </Flex>
-      <Slider
-        aria-label='slider-ex-1'
-        color='red'
-        defaultValue={value}
-        onChange={onChange}
-        isDisabled={isDisabled}
+      <Slider.Root
+        value={[value]}
+        onValueChange={(e) => onChange(e.value[0])}
+        disabled={isDisabled}
+        cursor='pointer'
       >
-        <SliderTrack>
-          <SliderFilledTrack bg='cyan.400' />
-        </SliderTrack>
-        <SliderThumb />
-      </Slider>
+        <Slider.Label />
+        <Slider.Control>
+          <Slider.Track>
+            <Slider.Range />
+          </Slider.Track>
+          <Slider.Thumb index={0}>
+            <Slider.HiddenInput />
+          </Slider.Thumb>
+        </Slider.Control>
+      </Slider.Root>
     </Container>
   );
 };
