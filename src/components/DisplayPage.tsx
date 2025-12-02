@@ -4,11 +4,12 @@ import { invoke } from '@tauri-apps/api/core';
 
 import {
   Alert,
-  AlertIcon,
   Box,
   Button,
+  createListCollection,
   Flex,
   Heading,
+  Portal,
   Select,
   Spacer,
   Text,
@@ -25,8 +26,6 @@ export const DisplayPage: React.FC<Display> = (props) => {
   const [isSpeakerMute, setIsSpeakerMute] = useState(props.speaker_mute === 0);
 
   const hasErr = (!brightness || !contrast || !sharpness) && !props.brightness;
-
-  const s = Object.entries(sources).map(([key]) => key);
 
   const handleBrightness = (value: number) => {
     setBrightness(value);
@@ -70,14 +69,17 @@ export const DisplayPage: React.FC<Display> = (props) => {
     });
   };
 
-  const handleInputSource: React.ChangeEventHandler<HTMLSelectElement> = async (
-    e
-  ) => {
+  const handleInputSource = async (e: { value: string[] }) => {
+    const value = Number(e.value[0]);
     await invoke('set_input_source', {
       id: props.id,
-      value: sources[e.target.value],
+      value,
     });
   };
+
+  const selectValue = sourceOptions.items.find(
+    (x) => x.value === props.active_code.toString()
+  )?.value;
 
   return (
     <>
@@ -90,10 +92,12 @@ export const DisplayPage: React.FC<Display> = (props) => {
         </Flex>
 
         {hasErr && (
-          <Alert status='warning' marginY='4'>
-            <AlertIcon />
-            ディスプレイ情報を取得できていない可能性があります
-          </Alert>
+          <Alert.Root status='warning'>
+            <Alert.Indicator />
+            <Alert.Title>
+              ディスプレイ情報を取得できていない可能性があります
+            </Alert.Title>
+          </Alert.Root>
         )}
       </Box>
 
@@ -122,18 +126,35 @@ export const DisplayPage: React.FC<Display> = (props) => {
 
       <Spacer height='4' />
 
-      <Select
-        bg={props.active_code ? 'cyan.100' : undefined}
-        borderColor={props.active_code ? 'cyan.100' : undefined}
-        defaultValue={Object.keys(sources).find(
-          (key) => sources[key] === props.active_code
-        )}
-        onChange={handleInputSource}
+      <Select.Root
+        collection={sourceOptions}
+        value={selectValue ? [selectValue.toString()] : []}
+        onValueChange={handleInputSource}
+        animationDuration='fast'
+        transitionDuration='fast'
       >
-        {s.map((x) => (
-          <option key={x}>{x}</option>
-        ))}
-      </Select>
+        <Select.HiddenSelect />
+        <Select.Control>
+          <Select.Trigger>
+            <Select.ValueText placeholder='Select Input Source' />
+          </Select.Trigger>
+          <Select.IndicatorGroup>
+            <Select.Indicator />
+          </Select.IndicatorGroup>
+        </Select.Control>
+        <Portal>
+          <Select.Positioner>
+            <Select.Content>
+              {sourceOptions.items.map((x) => (
+                <Select.Item item={x} key={x.value}>
+                  {x.label}
+                  <Select.ItemIndicator />
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Positioner>
+        </Portal>
+      </Select.Root>
     </>
   );
 };
@@ -160,3 +181,10 @@ const sources: { [key: string]: number } = {
   'Component video (YPrPb/YCrCb) 2': 13,
   'Component video (YPrPb/YCrCb) 3': 14,
 };
+
+const sourceOptions = createListCollection({
+  items: Object.entries(sources).map(([label, value]) => ({
+    label,
+    value: value.toString(),
+  })),
+});
