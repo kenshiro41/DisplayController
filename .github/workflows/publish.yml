@@ -42,8 +42,8 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
-      - name: install app dependencies and build it
-        run: bun install --frozen-lockfile && bun run build
+      - name: install frontend dependencies
+        run: bun install --frozen-lockfile
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
